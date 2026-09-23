@@ -1,0 +1,13 @@
+node_modules/
+.next/
+.next-dev/
+out/
+build/
+.env*.local
+.npm-cache/
+*.tsbuildinfo
+next-env.d.ts
+
+# Rohmaterial und lokale Einstellungen
+Product Images/
+.claude/settings.local.json
