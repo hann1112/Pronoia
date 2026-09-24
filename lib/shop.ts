@@ -2,6 +2,11 @@ import type { Product } from "@/lib/products";
 
 export const SHOP_ENABLED = process.env.NEXT_PUBLIC_SHOP_ENABLED === "true";
 
+// Für den Worker: zur Laufzeit statt beim Laden der Datei lesen.
+export function shopEnabled(): boolean {
+  return process.env.NEXT_PUBLIC_SHOP_ENABLED === "true";
+}
+
 // Läuft auch im Browser; ob eine Stripe-Preis-ID existiert, prüft erst /api/checkout.
 export function isPurchasable(product: Pick<Product, "status">): boolean {
   return SHOP_ENABLED && product.status === "available";

@@ -5,6 +5,8 @@ import { writings } from "@/lib/writing";
 
 const LEGAL_PATHS = ["/kontakt", "/impressum", "/datenschutz", "/agb", "/widerruf", "/versand"];
 
+export const dynamic = "force-static";
+
 export default function sitemap(): MetadataRoute.Sitemap {
   return [
     { url: `${SITE_URL}/`, changeFrequency: "monthly", priority: 1 },

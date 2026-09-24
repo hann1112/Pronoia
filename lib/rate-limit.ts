@@ -1,6 +1,12 @@
 const WINDOW_SECONDS = 60 * 60;
 
-// Ohne Upstash: im Speicher. Reicht bei einem durchgehend laufenden Server (Render, eine Instanz).
+// Minimaler Ausschnitt der Cloudflare-KV-API, damit lib/ keine Workers-Typen braucht.
+export type CounterStore = {
+  get(key: string): Promise<string | null>;
+  put(key: string, value: string, options?: { expiration?: number }): Promise<void>;
+};
+
+// Ohne KV (lokal): im Speicher der jeweiligen Instanz.
 const memory = new Map<string, { count: number; resetAt: number }>();
 
 function allowInMemory(key: string, limit: number): boolean {
@@ -17,34 +23,28 @@ function allowInMemory(key: string, limit: number): boolean {
   return entry.count <= limit;
 }
 
-async function allowInUpstash(url: string, token: string, key: string, limit: number): Promise<boolean> {
-  const response = await fetch(`${url.replace(/\/$/, "")}/pipeline`, {
-    method: "POST",
-    headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
-    body: JSON.stringify([
-      ["SET", key, "0", "EX", String(WINDOW_SECONDS), "NX"],
-      ["INCR", key],
-    ]),
-    cache: "no-store",
-  });
-  if (!response.ok) throw new Error(`Upstash antwortet mit ${response.status}.`);
-  const results = (await response.json()) as { result?: unknown; error?: string }[];
-  const count = results[1]?.result;
-  if (typeof count !== "number") throw new Error(`Upstash-Antwort unerwartet: ${results[1]?.error ?? "kein Zähler"}`);
-  return count <= limit;
+// KV ist nicht atomar; für ein Missbrauchs-Limit reicht das, einzelne Überschreitungen sind egal.
+async function allowInStore(store: CounterStore, key: string, limit: number): Promise<boolean> {
+  const now = Math.floor(Date.now() / 1000);
+  const stored = await store.get(key);
+  const entry = stored ? (JSON.parse(stored) as { count: number; resetAt: number }) : null;
+  const fresh = !entry || entry.resetAt <= now;
+  const count = fresh ? 1 : entry.count + 1;
+  const resetAt = fresh ? now + WINDOW_SECONDS : entry.resetAt;
+  if (count > limit) return false;
+  // KV verlangt mindestens 60 s bis zum Ablauf.
+  await store.put(key, JSON.stringify({ count, resetAt }), { expiration: Math.max(resetAt, now + 60) });
+  return true;
 }
 
 // true = Anfrage erlaubt. Max. `limit` Anfragen pro Stunde und Schlüssel.
-export async function allowRequest(key: string, limit: number): Promise<boolean> {
-  const url = process.env.UPSTASH_REDIS_REST_URL;
-  const token = process.env.UPSTASH_REDIS_REST_TOKEN;
-  if (!url || !token) return allowInMemory(key, limit);
-
+export async function allowRequest(key: string, limit: number, store?: CounterStore): Promise<boolean> {
+  if (!store) return allowInMemory(key, limit);
   try {
-    return await allowInUpstash(url, token, `pronoia:rl:${key}`, limit);
+    return await allowInStore(store, `rl:${key}`, limit);
   } catch (error) {
-    // Lieber eine Anmeldung zu viel durchlassen als alle blockieren, wenn Upstash hängt.
-    console.error("Rate-Limit: Upstash nicht erreichbar, Anfrage wird zugelassen.", error);
+    // Lieber eine Anmeldung zu viel durchlassen als alle blockieren, wenn KV hängt.
+    console.error("Rate-Limit: KV nicht erreichbar, Anfrage wird zugelassen.", error);
     return true;
   }
 }

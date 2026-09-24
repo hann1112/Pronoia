@@ -1,11 +1,8 @@
-import { NextResponse } from "next/server";
 import { z } from "zod";
 import { getProduct } from "@/lib/products";
-import { SHIPPING_COUNTRIES, SHOP_ENABLED } from "@/lib/shop";
-import { SITE_URL } from "@/lib/site";
-import { getStripe, remainingStock, volumeQuantities } from "@/lib/stripe";
-
-export const runtime = "nodejs";
+import { SHIPPING_COUNTRIES, shopEnabled } from "@/lib/shop";
+import { siteUrl } from "@/lib/site";
+import { getStripe, remainingStock, stripePriceId, volumeQuantities } from "@/lib/stripe";
 
 const bodySchema = z.object({
   items: z
@@ -14,36 +11,37 @@ const bodySchema = z.object({
     .max(10),
 });
 
-export async function POST(request: Request) {
-  if (!SHOP_ENABLED) {
-    return NextResponse.json({ error: "shop_closed" }, { status: 403 });
+export async function checkout(request: Request): Promise<Response> {
+  if (!shopEnabled()) {
+    return Response.json({ error: "shop_closed" }, { status: 403 });
   }
 
   const stripe = getStripe();
   const shippingRates = (process.env.STRIPE_SHIPPING_RATES ?? "").split(",").map((id) => id.trim()).filter(Boolean);
   if (!stripe || shippingRates.length === 0) {
     console.error("Checkout: STRIPE_SECRET_KEY oder STRIPE_SHIPPING_RATES fehlt.");
-    return NextResponse.json({ error: "checkout_not_configured" }, { status: 503 });
+    return Response.json({ error: "checkout_not_configured" }, { status: 503 });
   }
 
   let body: unknown;
   try {
     body = await request.json();
   } catch {
-    return NextResponse.json({ error: "invalid_request" }, { status: 400 });
+    return Response.json({ error: "invalid_request" }, { status: 400 });
   }
   const parsed = bodySchema.safeParse(body);
   if (!parsed.success) {
-    return NextResponse.json({ error: "invalid_request" }, { status: 400 });
+    return Response.json({ error: "invalid_request" }, { status: 400 });
   }
 
   const lineItems: { price: string; quantity: number }[] = [];
   for (const item of parsed.data.items) {
     const product = getProduct(item.slug);
-    if (!product || product.status !== "available" || !product.stripePriceId) {
-      return NextResponse.json({ error: "not_available", slug: item.slug }, { status: 409 });
+    const price = stripePriceId(product);
+    if (!product || product.status !== "available" || !price) {
+      return Response.json({ error: "not_available", slug: item.slug }, { status: 409 });
     }
-    lineItems.push({ price: product.stripePriceId, quantity: item.quantity });
+    lineItems.push({ price, quantity: item.quantity });
   }
 
   try {
@@ -51,7 +49,7 @@ export async function POST(request: Request) {
     const remaining = await remainingStock(stripe);
     for (const [slug, quantity] of volumeQuantities(parsed.data.items)) {
       if (quantity > (remaining.get(slug) ?? 0)) {
-        return NextResponse.json({ error: "sold_out", slug }, { status: 409 });
+        return Response.json({ error: "sold_out", slug }, { status: 409 });
       }
     }
 
@@ -67,15 +65,15 @@ export async function POST(request: Request) {
       invoice_creation: { enabled: true },
       customer_creation: "always",
       consent_collection: { terms_of_service: "required" },
-      success_url: `${SITE_URL}/danke?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${SITE_URL}/?cart=open`,
+      success_url: `${siteUrl()}/danke?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${siteUrl()}/?cart=open`,
       metadata: { cart, edition: "prototype-v2" },
       payment_intent_data: { metadata: { cart, edition: "prototype-v2" } },
     });
     if (!session.url) throw new Error("Stripe hat keine Checkout-URL geliefert.");
-    return NextResponse.json({ url: session.url });
+    return Response.json({ url: session.url });
   } catch (error) {
     console.error("Checkout: Session konnte nicht erstellt werden.", error);
-    return NextResponse.json({ error: "checkout_failed" }, { status: 502 });
+    return Response.json({ error: "checkout_failed" }, { status: 502 });
   }
 }

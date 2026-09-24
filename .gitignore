@@ -2,6 +2,8 @@ node_modules/
 .next/
 .next-dev/
 out/
+.wrangler/
+.dev.vars*
 build/
 .env*.local
 .npm-cache/

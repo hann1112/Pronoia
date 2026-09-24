@@ -1,12 +1,9 @@
-import { NextResponse } from "next/server";
 import { addNewsletterContact, getResend } from "@/lib/resend";
 import { verifyConfirmToken } from "@/lib/tokens";
 
-export const runtime = "nodejs";
-
-export async function GET(request: Request) {
+export async function confirm(request: Request): Promise<Response> {
   const redirectTo = (result: "1" | "expired" | "error") =>
-    NextResponse.redirect(new URL(`/?subscribed=${result}`, request.url), 303);
+    Response.redirect(new URL(`/?subscribed=${result}`, request.url).toString(), 303);
 
   const resend = getResend();
   const secret = process.env.NEWSLETTER_SECRET;

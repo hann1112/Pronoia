@@ -65,7 +65,7 @@ Warenkorb und Stripe werden trotzdem vollständig gebaut, aber über einen Schal
 | Zahlung | **Stripe Checkout (gehostet)** | Karte, Apple/Google Pay, PayPal, Klarna, SEPA |
 | E-Mail + Newsletter **[v2]** | **Resend** (Transaktionsmails + Kontaktliste) | eine Lösung für Bestellmails und Newsletter-Liste |
 | Validierung | **zod** | API-Eingaben |
-| Hosting | **Render** (Frankfurt, Starter) | fester Preis, `next start` als Server, Deploy per GitHub-Push |
+| Hosting | **Cloudflare Workers** | statischer Export (`out/`) + Worker für `/api/*`, kostenlos, kein Einschlafen |
 | Datenbank | **keine** | Stripe = Bestellungen, Resend = E-Mail-Liste |
 | Fonts | `next/font/google` | selbst gehostet, DSGVO-freundlich |
 
@@ -465,7 +465,7 @@ In Deutschland Pflicht: Eine E-Mail kommt erst **nach** Klick auf den Bestätigu
 **`POST /api/subscribe`**
 1. Body mit zod prüfen: `{ email: string().email().max(254), company?: string }`
 2. `company` ausgefüllt (Honeypot) → trotzdem `200` antworten, nichts tun.
-3. Rate-Limit: max. 5 Anfragen/Stunde pro IP und 3 pro E-Mail-Adresse (Upstash Redis; lokal ohne Upstash im Speicher).
+3. Rate-Limit: max. 5 Anfragen/Stunde pro IP und 3 pro E-Mail-Adresse (Cloudflare KV; lokal im Speicher).
 4. Token bauen (`lib/tokens.ts`): `base64url(email + '.' + ablaufzeit48h) + '.' + HMAC_SHA256(NEWSLETTER_SECRET)`.
 5. Bestätigungsmail über Resend senden: Betreff „bitte bestätigen — pronoia“, schlichtes HTML (weiß, Geist Mono, schwarzer Button `BESTÄTIGEN`) → Link `SITE_URL/api/subscribe/confirm?token=…`.
 6. Immer `200 { ok: true }` zurückgeben, auch wenn die Adresse schon existiert (verrät nichts).
@@ -501,8 +501,6 @@ RESEND_API_KEY=re_...
 RESEND_FROM="pronoia <hello@deinedomain.de>"
 RESEND_SEGMENT_ID=...                  # [v2] Resend-Segment „pronoia updates“
 NEWSLETTER_SECRET=<langer Zufallsstring> # [v2] für HMAC-Token
-UPSTASH_REDIS_REST_URL=...             # optional, Rate-Limit über mehrere Instanzen (Region EU)
-UPSTASH_REDIS_REST_TOKEN=...
 ORDER_NOTIFY_EMAIL=deine@mail.de
 ```
 
@@ -567,7 +565,7 @@ ORDER_NOTIFY_EMAIL=deine@mail.de
 > Baue EmailBar und EmailForm nach 6.5 (alle Zustände, Honeypot, Schließen mit 30 Tagen Speicher, mobil gestapelt, Ausblenden auf Legacy-Produktseiten). Baue `lib/tokens.ts`, `lib/resend.ts`, `POST /api/subscribe` und `GET /api/subscribe/confirm` nach 9.4 inkl. Rate-Limit und schlichter Bestätigungsmail im pronoia-Stil.
 
 **Phase 7: Rechtsseiten + Deploy**
-> Rechtsseiten nach 6.6, Favicon, OG-Bild `set-1.png`, `robots.txt`, `sitemap.xml`. Erkläre Deployment auf Render inkl. Env-Variablen (9.7), Domain, Resend-Domain-Verifizierung und später Stripe-Live-Webhook.
+> Rechtsseiten nach 6.6, Favicon, OG-Bild `set-1.png`, `robots.txt`, `sitemap.xml`. Erkläre Deployment auf Cloudflare inkl. Env-Variablen (9.7), Domain, Resend-Domain-Verifizierung und später Stripe-Live-Webhook.
 
 ---
 

@@ -5,9 +5,6 @@ import { filled, LEGAL_UPDATED, operator } from "@/lib/legal";
 
 export const metadata: Metadata = { title: "Datenschutz — pronoia" };
 
-// Wird zur Build-Zeit ausgewertet: Upstash erscheint nur, wenn es wirklich genutzt wird.
-const USES_UPSTASH = Boolean(process.env.UPSTASH_REDIS_REST_URL);
-
 const US_TRANSFER =
   "Die Übermittlung in die USA stützen wir auf den Angemessenheitsbeschluss der EU-Kommission zum EU-US Data Privacy Framework, soweit der Anbieter danach zertifiziert ist, andernfalls auf die EU-Standardvertragsklauseln (Art. 46 Abs. 2 lit. c DSGVO).";
 
@@ -43,18 +40,18 @@ export default function DatenschutzPage() {
 
       <LegalSection title="Hosting und Server-Logs">
         <p>
-          Die Website wird bei Render Services, Inc. (USA) gehostet, auf Servern in Frankfurt am
-          Main (EU). Beim Aufruf verarbeitet Render technisch notwendige Daten: IP-Adresse, Datum
-          und Uhrzeit, aufgerufene Seite, Referrer-URL, Browser und Betriebssystem. Das ist nötig,
-          um die Website sicher und stabil auszuliefern. Rechtsgrundlage ist unser berechtigtes
-          Interesse nach Art. 6 Abs. 1 lit. f DSGVO. Mit Render besteht ein Vertrag zur
-          Auftragsverarbeitung.
+          Die Website wird über das Netzwerk von Cloudflare, Inc. (USA) ausgeliefert, in der Regel
+          von einem Rechenzentrum in deiner Nähe. Beim Aufruf verarbeitet Cloudflare technisch
+          notwendige Daten: IP-Adresse, Datum und Uhrzeit, aufgerufene Seite, Referrer-URL, Browser
+          und Betriebssystem. Das ist nötig, um die Website sicher und stabil auszuliefern und vor
+          Angriffen zu schützen. Rechtsgrundlage ist unser berechtigtes Interesse nach
+          Art. 6 Abs. 1 lit. f DSGVO. Mit Cloudflare besteht ein Vertrag zur Auftragsverarbeitung.
         </p>
         <p>{US_TRANSFER}</p>
         <p>
           Mehr dazu:{" "}
-          <a href="https://render.com/privacy" className="underline underline-offset-2" rel="noopener noreferrer" target="_blank">
-            Datenschutzerklärung von Render
+          <a href="https://www.cloudflare.com/privacypolicy/" className="underline underline-offset-2" rel="noopener noreferrer" target="_blank">
+            Datenschutzerklärung von Cloudflare
           </a>
         </p>
       </LegalSection>
@@ -99,11 +96,8 @@ export default function DatenschutzPage() {
         <p>
           Zum Schutz vor Missbrauch begrenzen wir die Zahl der Anmeldungen pro Stunde. Dafür
           speichern wir für höchstens eine Stunde einen nicht umkehrbaren Hashwert deiner
-          IP-Adresse und deiner E-Mail-Adresse
-          {USES_UPSTASH
-            ? " bei Upstash, Inc. (Speicherort EU) als Auftragsverarbeiter"
-            : " im Arbeitsspeicher unseres Servers"}
-          . Rechtsgrundlage ist unser berechtigtes Interesse an einem sicheren Betrieb
+          IP-Adresse und deiner E-Mail-Adresse in einem Zwischenspeicher bei Cloudflare.
+          Rechtsgrundlage ist unser berechtigtes Interesse an einem sicheren Betrieb
           (Art. 6 Abs. 1 lit. f DSGVO).
         </p>
       </LegalSection>

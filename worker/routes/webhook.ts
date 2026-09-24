@@ -1,9 +1,6 @@
-import { NextResponse } from "next/server";
 import { Resend } from "resend";
 import Stripe from "stripe";
-import { recordSold, volumeQuantities } from "@/lib/stripe";
-
-export const runtime = "nodejs";
+import { getStripe, recordSold, volumeQuantities } from "@/lib/stripe";
 
 function euro(amount: number | null): string {
   return amount === null
@@ -110,25 +107,31 @@ async function notifyPaidOrder(stripe: Stripe, sessionId: string) {
   await stripe.paymentIntents.update(intent.id, { metadata: { fulfilled: "true" } });
 }
 
-export async function POST(request: Request) {
-  const stripeKey = process.env.STRIPE_SECRET_KEY;
+export async function webhook(request: Request): Promise<Response> {
+  const stripe = getStripe();
   const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
-  if (!stripeKey || !webhookSecret) {
+  if (!stripe || !webhookSecret) {
     console.error("Stripe-Webhook: STRIPE_SECRET_KEY oder STRIPE_WEBHOOK_SECRET fehlt.");
-    return NextResponse.json({ error: "webhook_not_configured" }, { status: 503 });
+    return Response.json({ error: "webhook_not_configured" }, { status: 503 });
   }
 
   const signature = request.headers.get("stripe-signature");
   if (!signature) {
-    return NextResponse.json({ error: "missing_signature" }, { status: 400 });
+    return Response.json({ error: "missing_signature" }, { status: 400 });
   }
 
-  const stripe = new Stripe(stripeKey);
   let event: Stripe.Event;
   try {
-    event = stripe.webhooks.constructEvent(await request.text(), signature, webhookSecret);
+    // Im Worker gibt es nur die asynchrone Web-Crypto-Prüfung.
+    event = await stripe.webhooks.constructEventAsync(
+      await request.text(),
+      signature,
+      webhookSecret,
+      undefined,
+      Stripe.createSubtleCryptoProvider(),
+    );
   } catch {
-    return NextResponse.json({ error: "invalid_signature" }, { status: 400 });
+    return Response.json({ error: "invalid_signature" }, { status: 400 });
   }
 
   if (
@@ -136,27 +139,27 @@ export async function POST(request: Request) {
     event.type !== "checkout.session.async_payment_succeeded" &&
     event.type !== "checkout.session.async_payment_failed"
   ) {
-    return NextResponse.json({ received: true });
+    return Response.json({ received: true });
   }
 
   const session = event.data.object as Stripe.Checkout.Session;
   if (session.object !== "checkout.session" || !session.id) {
-    return NextResponse.json({ error: "invalid_session" }, { status: 400 });
+    return Response.json({ error: "invalid_session" }, { status: 400 });
   }
 
   if (event.type === "checkout.session.async_payment_failed") {
     console.warn(`Stripe-Webhook: asynchrone Zahlung fehlgeschlagen (${session.id}).`);
-    return NextResponse.json({ received: true });
+    return Response.json({ received: true });
   }
   if (event.type === "checkout.session.completed" && session.payment_status !== "paid") {
-    return NextResponse.json({ received: true });
+    return Response.json({ received: true });
   }
 
   try {
     await notifyPaidOrder(stripe, session.id);
-    return NextResponse.json({ received: true });
+    return Response.json({ received: true });
   } catch (error) {
     console.error(`Stripe-Webhook ${event.id}: Verarbeitung fehlgeschlagen.`, error);
-    return NextResponse.json({ error: "fulfillment_failed" }, { status: 500 });
+    return Response.json({ error: "fulfillment_failed" }, { status: 500 });
   }
 }

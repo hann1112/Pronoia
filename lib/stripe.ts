@@ -1,9 +1,13 @@
 import Stripe from "stripe";
-import { EDITION_SIZE, getProduct, type ProductSlug } from "@/lib/products";
+import { EDITION_SIZE, getProduct, type Product, type ProductSlug } from "@/lib/products";
 
 export function getStripe(): Stripe | null {
   const key = process.env.STRIPE_SECRET_KEY;
-  return key ? new Stripe(key) : null;
+  return key ? new Stripe(key, { httpClient: Stripe.createFetchHttpClient() }) : null;
+}
+
+export function stripePriceId(product: Product | undefined): string | undefined {
+  return product?.priceEnv ? process.env[product.priceEnv] || undefined : undefined;
 }
 
 // Einzelbände, deren Bestand gezählt wird. Ein Set zählt für jeden seiner Bände.
@@ -23,7 +27,7 @@ export function volumeQuantities(items: { slug: string; quantity: number }[]): M
 
 // Der Verkaufsstand liegt als Metadata „sold“ am Stripe-Produkt des jeweiligen Bandes.
 async function volumeProduct(stripe: Stripe, slug: ProductSlug): Promise<Stripe.Product> {
-  const priceId = getProduct(slug)?.stripePriceId;
+  const priceId = stripePriceId(getProduct(slug));
   if (!priceId) throw new Error(`Keine Stripe-Preis-ID für ${slug}.`);
   const price = await stripe.prices.retrieve(priceId, { expand: ["product"] });
   return price.product as Stripe.Product;

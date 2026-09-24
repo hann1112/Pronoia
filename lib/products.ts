@@ -25,7 +25,8 @@ export type Product = {
   edition?: string;
   // Preis in Cent. Wird erst angezeigt, wenn der Shop aktiv ist.
   priceCents?: number;
-  stripePriceId?: string;
+  // Name der Umgebungsvariable mit der Stripe-Preis-ID (nur serverseitig lesbar).
+  priceEnv?: "STRIPE_PRICE_BODY" | "STRIPE_PRICE_MIND" | "STRIPE_PRICE_SET";
   // Leer = Bilder der Vorversion, bis eigene Fotos da sind (public/products/v2/…).
   images: ProductImage[];
   description: string;
@@ -66,7 +67,7 @@ export const products: Product[] = [
     versionLabel: "Prototyp V2",
     edition: "Prototyp V2 · 50 nummerierte Exemplare",
     priceCents: 4200,
-    stripePriceId: process.env.STRIPE_PRICE_BODY,
+    priceEnv: "STRIPE_PRICE_BODY",
     images: [],
     description:
       "Nº 01 · Körper. Askesis, ein Trainingsbuch: 32 Einheiten mit Studie, acht Linsen, acht Rückblicke. Prototyp V2, limitiert auf 50 nummerierte Exemplare.",
@@ -87,9 +88,9 @@ export const products: Product[] = [
       label: "Prototyp V1",
       edition: "Prototyp V1 · 1/1 · nicht verkäuflich",
       images: [
-        { src: "/products/body-1.png", alt: "pronoia Nº 01 Körper, Prototyp V1, schwarzer Einband, frontal" },
-        { src: "/products/body-2.png", alt: "Nº 01 Körper, Prototyp V1, schräg mit Buchrücken" },
-        { src: "/products/body-3.png", alt: "Nº 01 Körper, Prototyp V1, liegend" },
+        { src: "/products/body-1.webp", alt: "pronoia Nº 01 Körper, Prototyp V1, schwarzer Einband, frontal" },
+        { src: "/products/body-2.webp", alt: "Nº 01 Körper, Prototyp V1, schräg mit Buchrücken" },
+        { src: "/products/body-3.webp", alt: "Nº 01 Körper, Prototyp V1, liegend" },
       ],
       description: "Die erste Fassung von Nº 01. Ein Einzelstück, aus dem V2 entstanden ist. Nicht verkäuflich.",
     },
@@ -104,7 +105,7 @@ export const products: Product[] = [
     versionLabel: "Prototyp V2",
     edition: "Prototyp V2 · 50 nummerierte Exemplare",
     priceCents: 4200,
-    stripePriceId: process.env.STRIPE_PRICE_MIND,
+    priceEnv: "STRIPE_PRICE_MIND",
     images: [],
     description:
       "Nº 02 · Geist. Hypomnemata, ein Schöpfungsbuch: 27 Impulse aus Sätzen, Bildformen und offenen Fragen, danach freie Seiten. Prototyp V2, limitiert auf 50 nummerierte Exemplare.",
@@ -124,9 +125,9 @@ export const products: Product[] = [
       label: "Prototyp V1",
       edition: "Prototyp V1 · 1/1 · nicht verkäuflich",
       images: [
-        { src: "/products/mind-1.png", alt: "pronoia Nº 02 Geist, Prototyp V1, cremefarbener Einband, frontal" },
-        { src: "/products/mind-2.png", alt: "Nº 02 Geist, Prototyp V1, zweite Ansicht" },
-        { src: "/products/mind-3.png", alt: "Nº 02 Geist, Prototyp V1, liegend" },
+        { src: "/products/mind-1.webp", alt: "pronoia Nº 02 Geist, Prototyp V1, cremefarbener Einband, frontal" },
+        { src: "/products/mind-2.webp", alt: "Nº 02 Geist, Prototyp V1, zweite Ansicht" },
+        { src: "/products/mind-3.webp", alt: "Nº 02 Geist, Prototyp V1, liegend" },
       ],
       description: "Die erste Fassung von Nº 02. Ein Einzelstück, aus dem V2 entstanden ist. Nicht verkäuflich.",
     },
@@ -141,8 +142,8 @@ export const products: Product[] = [
     versionLabel: "Prototyp V2",
     edition: "Prototyp V2 · je 50 nummerierte Exemplare",
     priceCents: 7500,
-    stripePriceId: process.env.STRIPE_PRICE_SET,
-    images: [{ src: "/products/set-1.png", alt: "pronoia Nº 01 Körper und Nº 02 Geist nebeneinander" }],
+    priceEnv: "STRIPE_PRICE_SET",
+    images: [{ src: "/products/set-1.webp", alt: "pronoia Nº 01 Körper und Nº 02 Geist nebeneinander" }],
     description: "Beide Bände im Set: Nº 01 · Körper (Askesis) und Nº 02 · Geist (Hypomnemata). Prototyp V2.",
     details: SPECS,
     bundleOf: ["body", "mind"],

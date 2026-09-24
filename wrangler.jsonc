@@ -1,0 +1,34 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  // Statische Seite aus `next build` (out/) plus ein Worker nur für /api/*.
+  "name": "pronoia",
+  "main": "./worker/index.ts",
+  "compatibility_date": "2026-09-01",
+  "compatibility_flags": ["nodejs_compat"],
+  "assets": {
+    "directory": "./out",
+    "binding": "ASSETS",
+    "not_found_handling": "404-page",
+    "html_handling": "auto-trailing-slash",
+    "run_worker_first": ["/api/*"]
+  },
+  "kv_namespaces": [
+    // Rate-Limit der Newsletter-Anmeldung (gehashte IP/E-Mail, max. 1 h).
+    { "binding": "RATE_LIMIT", "id": "a677dc04434f4be3b2a13890fe8422d9" }
+  ],
+  "observability": { "enabled": true },
+  // Nicht geheim. Geheim (per `wrangler secret put`): STRIPE_SECRET_KEY,
+  // STRIPE_WEBHOOK_SECRET, RESEND_API_KEY, NEWSLETTER_SECRET.
+  // NEXT_PUBLIC_* zusätzlich in .env.production, weil sie beim Build eingebacken werden.
+  "vars": {
+    "NEXT_PUBLIC_SITE_URL": "https://pronoia.workers.dev",
+    "NEXT_PUBLIC_SHOP_ENABLED": "false",
+    "STRIPE_PRICE_BODY": "price_1UIxe8RXEmDshqwo7d39s2m8",
+    "STRIPE_PRICE_MIND": "price_1UIxeBRXEmDshqwoBsRSrujA",
+    "STRIPE_PRICE_SET": "price_1UIxeDRXEmDshqwo18xwdrHu",
+    "STRIPE_SHIPPING_RATES": "",
+    "RESEND_SEGMENT_ID": "cda9f461-a958-4bd8-ade3-576bbb722174",
+    "RESEND_FROM": "pronoia <onboarding@resend.dev>",
+    "ORDER_NOTIFY_EMAIL": "pronoia_company@proton.me"
+  }
+}
