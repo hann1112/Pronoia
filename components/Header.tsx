@@ -20,7 +20,7 @@ function HeaderCartButton() {
       type="button"
       onClick={openCart}
       aria-label={`Warenkorb öffnen, ${hydrated ? count : 0} Artikel`}
-      className="font-ui text-[11px] uppercase tracking-[0.2em] focus-visible:outline focus-visible:outline-1 focus-visible:outline-offset-2 focus-visible:outline-ink"
+      className="whitespace-nowrap font-ui text-[11px] uppercase tracking-[0.1em] focus-visible:outline focus-visible:outline-1 focus-visible:outline-offset-2 focus-visible:outline-ink md:tracking-[0.2em]"
     >
       Warenkorb ({hydrated ? count : 0})
     </button>
@@ -64,7 +64,7 @@ export function Header() {
         <Link
           href="/gedanken"
           aria-current={pathname.startsWith("/gedanken") ? "page" : undefined}
-          className={`font-ui text-[11px] uppercase tracking-[0.2em] hover:text-ink focus-visible:outline focus-visible:outline-1 focus-visible:outline-offset-2 focus-visible:outline-ink ${pathname.startsWith("/gedanken") ? "text-ink" : "text-muted"}`}
+          className={`${isProduct && SHOP_ENABLED ? "hidden md:inline" : ""} font-ui text-[11px] uppercase tracking-[0.2em] hover:text-ink focus-visible:outline focus-visible:outline-1 focus-visible:outline-offset-2 focus-visible:outline-ink ${pathname.startsWith("/gedanken") ? "text-ink" : "text-muted"}`}
         >
           Gedanken
         </Link>

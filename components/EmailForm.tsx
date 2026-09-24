@@ -84,7 +84,7 @@ export function EmailForm({ label, variant = "panel", notice, onSuccess }: Email
     <button
       type="submit"
       disabled={locked}
-      className={`${variant === "bar" ? "h-9 md:w-auto md:px-6" : "h-11"} w-full shrink-0 rounded-[6px] bg-ink px-4 font-ui text-[11px] uppercase tracking-[0.2em] text-bg disabled:opacity-50 focus-visible:outline focus-visible:outline-1 focus-visible:outline-offset-2 focus-visible:outline-ink`}
+      className={`${variant === "bar" ? "h-9 rounded-[6px] md:w-auto md:px-6" : "h-12 rounded-full"} w-full shrink-0 bg-ink px-4 font-ui text-[11px] uppercase tracking-[0.2em] text-bg disabled:opacity-50 focus-visible:outline focus-visible:outline-1 focus-visible:outline-offset-2 focus-visible:outline-ink`}
     >
       {status === "loading" ? "…" : "Eintragen"}
     </button>
@@ -122,7 +122,7 @@ export function EmailForm({ label, variant = "panel", notice, onSuccess }: Email
 
   return (
     <form onSubmit={handleSubmit} className="w-full" noValidate>
-      <label htmlFor={`${id}-email`} className="font-ui text-[11px] uppercase tracking-[0.2em]">
+      <label htmlFor={`${id}-email`} className="text-[12px]">
         {label}
       </label>
       <div className="mt-3 flex flex-col gap-3">

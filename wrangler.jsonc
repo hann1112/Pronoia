@@ -27,7 +27,6 @@
     "STRIPE_PRICE_BODY": "price_1UIxe8RXEmDshqwo7d39s2m8",
     "STRIPE_PRICE_MIND": "price_1UIxeBRXEmDshqwoBsRSrujA",
     "STRIPE_PRICE_SET": "price_1UIxeDRXEmDshqwo18xwdrHu",
-    "STRIPE_SHIPPING_RATES": "",
     "RESEND_SEGMENT_ID": "cda9f461-a958-4bd8-ade3-576bbb722174",
     "RESEND_FROM": "pronoia <onboarding@resend.dev>",
     "ORDER_NOTIFY_EMAIL": "pronoia_company@proton.me"

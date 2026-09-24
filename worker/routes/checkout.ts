@@ -1,6 +1,7 @@
 import { z } from "zod";
+import { SMALL_BUSINESS } from "@/lib/legal";
 import { getProduct } from "@/lib/products";
-import { SHIPPING_COUNTRIES, shopEnabled } from "@/lib/shop";
+import { DELIVERY, SHIPPING_COUNTRIES, shopEnabled } from "@/lib/shop";
 import { siteUrl } from "@/lib/site";
 import { getStripe, remainingStock, stripePriceId, volumeQuantities } from "@/lib/stripe";
 
@@ -17,9 +18,8 @@ export async function checkout(request: Request): Promise<Response> {
   }
 
   const stripe = getStripe();
-  const shippingRates = (process.env.STRIPE_SHIPPING_RATES ?? "").split(",").map((id) => id.trim()).filter(Boolean);
-  if (!stripe || shippingRates.length === 0) {
-    console.error("Checkout: STRIPE_SECRET_KEY oder STRIPE_SHIPPING_RATES fehlt.");
+  if (!stripe) {
+    console.error("Checkout: STRIPE_SECRET_KEY fehlt.");
     return Response.json({ error: "checkout_not_configured" }, { status: 503 });
   }
 
@@ -60,9 +60,27 @@ export async function checkout(request: Request): Promise<Response> {
       locale: "de",
       submit_type: "pay",
       shipping_address_collection: { allowed_countries: [...SHIPPING_COUNTRIES] },
-      shipping_options: shippingRates.map((rate) => ({ shipping_rate: rate })),
+      shipping_options: [
+        {
+          shipping_rate_data: {
+            type: "fixed_amount",
+            display_name: DELIVERY.label,
+            fixed_amount: { amount: 0, currency: "eur" },
+            tax_behavior: "inclusive",
+            delivery_estimate: {
+              minimum: { unit: "business_day", value: DELIVERY.minBusinessDays },
+              maximum: { unit: "business_day", value: DELIVERY.maxBusinessDays },
+            },
+          },
+        },
+      ],
       allow_promotion_codes: true,
-      invoice_creation: { enabled: true },
+      invoice_creation: {
+        enabled: true,
+        ...(SMALL_BUSINESS && {
+          invoice_data: { footer: "Gemäß § 19 UStG wird keine Umsatzsteuer berechnet." },
+        }),
+      },
       customer_creation: "always",
       consent_collection: { terms_of_service: "required" },
       success_url: `${siteUrl()}/danke?session_id={CHECKOUT_SESSION_ID}`,

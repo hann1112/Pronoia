@@ -22,5 +22,5 @@ export const LEGAL_UPDATED = "September 2026";
 
 // Kleinunternehmerregelung (§ 19 UStG): true = keine Umsatzsteuer ausweisen.
 // Muss vor dem Shop-Start feststehen; steuert den Hinweis neben jedem Preis.
-export const SMALL_BUSINESS = false;
-export const VAT_NOTE = SMALL_BUSINESS ? "ohne USt. (§ 19 UStG)" : "inkl. MwSt.";
+export const SMALL_BUSINESS = true;
+export const VAT_NOTE = SMALL_BUSINESS ? "Kein Ausweis der USt. (§ 19 UStG)" : "inkl. MwSt.";

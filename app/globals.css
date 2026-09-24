@@ -101,11 +101,31 @@ a {
 }
 
 @media (max-width: 767px) {
-  .product-info-glass {
-    --glass-blur: 10px;
-  }
-
   .product-zoom-image {
     transform: none !important;
+  }
+}
+
+/* Seitenpanel „Mehr anzeigen“ auf der Produktseite */
+.product-sheet[open] {
+  animation: sheet-in 0.55s cubic-bezier(0.7, 0, 0.2, 1);
+}
+
+.product-sheet[open]::backdrop {
+  animation: backdrop-in 0.4s ease;
+}
+
+@keyframes sheet-in {
+  from { transform: translateX(100%); }
+}
+
+@keyframes backdrop-in {
+  from { opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .product-sheet[open],
+  .product-sheet[open]::backdrop {
+    animation: none;
   }
 }

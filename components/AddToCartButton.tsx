@@ -8,7 +8,7 @@ type AddToCartButtonProps = {
   slug: ProductSlug;
   disabled?: boolean;
   label?: string;
-  variant?: "solid" | "outline";
+  variant?: "solid" | "outline" | "link";
 };
 
 export function AddToCartButton({
@@ -29,7 +29,11 @@ export function AddToCartButton({
       onClick={() => {
         if (add(slug)) openCart();
       }}
-      className={`h-11 w-full rounded-[6px] px-4 font-ui text-[11px] uppercase tracking-[0.2em] transition-opacity duration-150 hover:opacity-80 focus-visible:outline focus-visible:outline-1 focus-visible:outline-offset-4 focus-visible:outline-ink disabled:cursor-not-allowed disabled:opacity-50 ${variant === "outline" ? "border border-ink text-ink" : "bg-ink text-bg"}`}
+      className={
+        variant === "link"
+          ? "text-[12px] underline underline-offset-4 hover:text-muted focus-visible:outline focus-visible:outline-1 focus-visible:outline-offset-4 focus-visible:outline-ink disabled:cursor-not-allowed disabled:opacity-50"
+          : `h-12 w-full rounded-full px-6 font-ui text-[11px] uppercase tracking-[0.2em] transition-opacity duration-150 hover:opacity-80 focus-visible:outline focus-visible:outline-1 focus-visible:outline-offset-4 focus-visible:outline-ink disabled:cursor-not-allowed disabled:opacity-50 ${variant === "outline" ? "border border-ink text-ink" : "bg-ink text-bg"}`
+      }
     >
       {label}
     </button>

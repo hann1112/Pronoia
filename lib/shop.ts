@@ -22,3 +22,12 @@ export const SHIPPING_COUNTRIES = [
   "AT", "BE", "BG", "CY", "CZ", "DE", "DK", "EE", "ES", "FI", "FR", "GR", "HR", "HU",
   "IE", "IT", "LT", "LU", "LV", "MT", "NL", "PL", "PT", "RO", "SE", "SI", "SK",
 ] as const;
+
+// Versand ist im Preis enthalten; Lieferzeit wie auf der Produktseite angegeben.
+export const DELIVERY = {
+  label: "Versand inklusive",
+  minBusinessDays: 8,
+  maxBusinessDays: 12,
+} as const;
+
+export const DELIVERY_NOTE = `Versand inklusive. Lieferung voraussichtlich in ${DELIVERY.minBusinessDays}–${DELIVERY.maxBusinessDays} Werktagen.`;
