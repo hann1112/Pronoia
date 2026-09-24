@@ -17,11 +17,12 @@
     { "binding": "RATE_LIMIT", "id": "a677dc04434f4be3b2a13890fe8422d9" }
   ],
   "observability": { "enabled": true },
+  "workers_dev": true,
   // Nicht geheim. Geheim (per `wrangler secret put`): STRIPE_SECRET_KEY,
   // STRIPE_WEBHOOK_SECRET, RESEND_API_KEY, NEWSLETTER_SECRET.
   // NEXT_PUBLIC_* zusätzlich in .env.production, weil sie beim Build eingebacken werden.
   "vars": {
-    "NEXT_PUBLIC_SITE_URL": "https://pronoia.workers.dev",
+    "NEXT_PUBLIC_SITE_URL": "https://pronoia.pronoia-journal.workers.dev",
     "NEXT_PUBLIC_SHOP_ENABLED": "false",
     "STRIPE_PRICE_BODY": "price_1UIxe8RXEmDshqwo7d39s2m8",
     "STRIPE_PRICE_MIND": "price_1UIxeBRXEmDshqwoBsRSrujA",
